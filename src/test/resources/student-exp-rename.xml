@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<dataset>
+    <STUDENT id='101' first_name='New Homer' last_name = 'Simpson' dob = '1956-12-12' phone = '123456789'/>
+    <STUDENT id='102' first_name='Rick' last_name = 'Smith' dob = '1944-03-06' phone = '234567890'/>
+    <STUDENT id='103' first_name='Morty' last_name = 'Smith' dob = '1999-01-11' phone = '345678901'/>
+    <SUBJECT id='201' subject_name='CS50' tutor = 'John'/>
+    <SUBJECT id='202' subject_name='CS101' tutor = 'Doe'/>
+    <EXAM_RESULTS id='301' STUDENT_ID='101' SUBJECT_ID = '201' MARK = '99'/>
+    <EXAM_RESULTS id='302' STUDENT_ID='102' SUBJECT_ID = '202' MARK = '75'/>
+    <EXAM_RESULTS id='303' STUDENT_ID='103' SUBJECT_ID = '202' MARK = '30'/>
+    <EXAM_RESULTS id='304' STUDENT_ID='102' SUBJECT_ID = '201' MARK = '80'/>
+</dataset>
