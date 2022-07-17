@@ -2,7 +2,7 @@ package org.rostik.andrusiv.databases.dao;
 
 import java.util.List;
 
-public interface GenericDao<T, ID> {
+public interface Dao<T, ID> {
 
     List<T> findAll();
 
@@ -10,7 +10,7 @@ public interface GenericDao<T, ID> {
 
     boolean save(T entity);
 
-    boolean update(ID id, T entity);
+    T update(ID id, T entity);
 
     void delete(ID id);
 

@@ -26,7 +26,7 @@ public class StudentDaoImpl implements StudentDao {
 
     private static final String SQL_FIND_ALL = "select * from student";
 
-    private static final String SQL_FIND_BY_ID = "select * from student where student_id = ?";
+    private static final String SQL_FIND_BY_ID = "select * from student where id = ?";
 
     private static final String SQL_FIND_BY_NAME_LASTNAME_EXACT = "select * from student where first_name  = ? and last_name = ?";
 
@@ -34,11 +34,11 @@ public class StudentDaoImpl implements StudentDao {
 
     private static final String SQL_FIND_BY_PHONE_PARTIAL = "select * from student where cast(phone as text) like ? || '%'";
 
-    private static final String SQL_FIND_BY_SURNAME_WITH_MARKS_PARTIAL = "select * from student join exam_results on student.student_id = exam_results.student_id where last_name like ?";
+    private static final String SQL_FIND_BY_SURNAME_WITH_MARKS_PARTIAL = "select * from student join exam_results on student.id = exam_results.id where last_name like ?";
 
     private static final String SQL_SAVE = "insert into student (first_name, last_name, dob, phone) values (?,?,?,?)";
 
-    private static final String SQL_UPDATE = "update student set first_name = ?, last_name = ?, dob = ?, phone = ? where student_id = ?";
+    private static final String SQL_UPDATE = "update student set first_name = ?, last_name = ?, dob = ?, phone = ? where id = ?";
 
     private static final String SQL_DELETE = "DELETE FROM student WHERE id = ?";
 
@@ -46,6 +46,7 @@ public class StudentDaoImpl implements StudentDao {
 
     private static Logger logger = LoggerFactory.getLogger(StudentDaoImpl.class.getName());
 
+    @Override
     public List<Student> findAll() {
         List<Student> list = new ArrayList<>();
 
@@ -67,22 +68,12 @@ public class StudentDaoImpl implements StudentDao {
     }
 
     @Override
-    public Student findById(Integer integer) {
-        return null;
-    }
-
-    @Override
-    public boolean update(Integer integer, Student entity) {
-        return false;
-    }
-
-    public Student findById(Integer id, long sleepTime) {
+    public Student findById(Integer id) {
 
         try (Connection connection = dbManager.getConnection();
             PreparedStatement pst = connection.prepareStatement(SQL_FIND_BY_ID)) {
             connection.setAutoCommit(false);
             connection.setTransactionIsolation(TRANSACTION_SERIALIZABLE);
-            Thread.sleep(sleepTime);
             pst.setInt(1, id);
             ResultSet rs = pst.executeQuery();
             connection.commit();
@@ -91,12 +82,13 @@ public class StudentDaoImpl implements StudentDao {
                     (rs.getInt(1), rs.getString(2), rs.getString(3),
                             rs.getDate(4).toLocalDate(), rs.getInt(5),
                             rs.getTimestamp(6).toLocalDateTime(), rs.getTimestamp(7).toLocalDateTime());
-        } catch (SQLException | InterruptedException ex) {
+        } catch (SQLException ex) {
             logger.info(String.format(EXCEPTION_MESSAGE, ex.getMessage()));
         }
         return null;
     }
 
+    @Override
     public boolean save(Student student) {
         ResultSet resultSet = null;
         try (Connection connection = dbManager.getConnection();
@@ -120,14 +112,13 @@ public class StudentDaoImpl implements StudentDao {
         return false;
     }
 
-
-    public Student update(Integer id, Student student, long sleepTime) {
+    @Override
+    public Student update(Integer id, Student student) {
         ResultSet resultSet = null;
         try (Connection connection = dbManager.getConnection();
              PreparedStatement preparedStatement = connection.prepareStatement(SQL_UPDATE, Statement.RETURN_GENERATED_KEYS)) {
             connection.setAutoCommit(false);
             connection.setTransactionIsolation(TRANSACTION_SERIALIZABLE);
-            Thread.sleep(sleepTime);
             preparedStatement.setString(1, student.getName());
             preparedStatement.setString(2, student.getSurName());
             preparedStatement.setDate(3, Date.valueOf(student.getDob()));
@@ -141,17 +132,19 @@ public class StudentDaoImpl implements StudentDao {
                 connection.commit();
                 return student;
             }
-        } catch (SQLException | InterruptedException e) {
+        } catch (SQLException e) {
             logger.info(e.getMessage());
         }
         return student;
     }
 
+    @Override
     public void delete(Integer id) {
         try (Connection connection = dbManager.getConnection();
-             Statement stmt = connection.createStatement();
+             PreparedStatement pst = connection.prepareStatement(SQL_DELETE);
         ) {
-            stmt.executeUpdate(SQL_DELETE);
+            pst.setInt(1, id);
+            pst.execute();
         } catch (SQLException e) {
             logger.info(e.getMessage());
         }
@@ -239,11 +232,11 @@ public class StudentDaoImpl implements StudentDao {
                             (rs.getInt(1), rs.getString(2), rs.getString(3),
                                     rs.getDate(4).toLocalDate(), rs.getInt(5),
                                     rs.getTimestamp(6).toLocalDateTime(), rs.getTimestamp(7).toLocalDateTime());
-                    student.getExamResultList().add(new ExamResult(rs.getInt(1), rs.getInt(10), rs.getInt(11)));
+                    student.getExamResultList().add(new ExamResult(rs.getInt(8), rs.getInt(9), rs.getInt(10), rs.getInt(11)));
                     map.put(student.getId(), student);
                 } else {
                     List<ExamResult> examResults = map.get(rs.getInt(1)).getExamResultList();
-                    examResults.add(new ExamResult(rs.getInt(1), rs.getInt(10), rs.getInt(11)));
+                    examResults.add(new ExamResult(rs.getInt(8), rs.getInt(9), rs.getInt(10), rs.getInt(11)));
                 }
             }
 

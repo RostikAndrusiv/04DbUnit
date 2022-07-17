@@ -7,6 +7,8 @@ import lombok.Data;
 @AllArgsConstructor
 public class ExamResult {
 
+    private int id;
+
     private int studentId;
 
     private int subjectId;

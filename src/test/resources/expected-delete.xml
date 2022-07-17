@@ -1,5 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<dataset>
-    <STUDENT id='101' first_name='Homer' last_name = 'Simpson' dob = '1956-12-12' phone = '123456789'/>
-    <STUDENT id='103' first_name='Morty' last_name = 'Smith' dob = '1999-01-11' phone = '345678901'/>
-</dataset>

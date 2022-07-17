@@ -5,7 +5,7 @@ import org.rostik.andrusiv.databases.entity.StudentWithMarks;
 
 import java.util.List;
 
-public interface StudentDao extends GenericDao<Student, Integer> {
+public interface StudentDao extends Dao<Student, Integer> {
 
     List<Student> findStudentByNameExact(String firstName, String lastName);
 

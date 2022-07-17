@@ -14,6 +14,9 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
+import org.rostik.andrusiv.databases.dao.Impl.StudentDaoImpl;
+import org.rostik.andrusiv.databases.dao.StudentDao;
+import org.rostik.andrusiv.databases.entity.Student;
 
 import javax.sql.DataSource;
 
@@ -21,6 +24,7 @@ import java.io.InputStream;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.time.LocalDate;
 
 import static org.dbunit.Assertion.assertEqualsIgnoreCols;
 import static org.rostik.andrusiv.databases.ConnectionSettings.*;
@@ -28,14 +32,14 @@ import static org.rostik.andrusiv.databases.ConnectionSettings.*;
 @RunWith(JUnit4.class)
 public class DataSourceDBUnitTest extends DataSourceBasedDBTestCase {
 
+    StudentDao studentDao = new StudentDaoImpl();
+
     private Connection connection;
 
     @Override
     protected DataSource getDataSource() {
         JdbcDataSource dataSource = new JdbcDataSource();
         dataSource.setURL(JDBC_URL);
-//        dataSource.setUser(USER);
-//        dataSource.setPassword(PASSWORD);
         return dataSource;
     }
 
@@ -73,7 +77,7 @@ public class DataSourceDBUnitTest extends DataSourceBasedDBTestCase {
     }
     
     @Test
-    public void givenDataSet_whenSelect_thenFirstTitleIsGreyTShirt() throws SQLException {
+    public void givenDataSet_whenSelect_thenFirstNameIsHomer() throws SQLException {
         ResultSet rs = connection.createStatement().executeQuery("select * from STUDENT where id = 101");
         assertTrue(rs.next());
         assertEquals("Homer", rs.getString("first_name"));
@@ -81,14 +85,14 @@ public class DataSourceDBUnitTest extends DataSourceBasedDBTestCase {
 
     @Test
     public void testGivenDataSet_whenInsert_thenTableHasNewStudent() throws Exception {
-        try (InputStream is = getClass().getClassLoader().getResourceAsStream("expected-student.xml")) {
+        try (InputStream is = getClass().getClassLoader().getResourceAsStream("expected-student-add.xml")) {
             IDataSet expectedDataSet = new FlatXmlDataSetBuilder().build(is);
             // given
             ITable expectedTable = expectedDataSet.getTable("STUDENT");
 
-            connection.createStatement()
-                    .executeUpdate(
-                            "insert into student (first_name, last_name, dob, phone) values ('max','power','2000-12-12','987654321')");
+            Student student = new Student("max", "power", LocalDate.parse("2000-12-12"), 987654321);
+            studentDao.save(student);
+
             // when
             ITable actualData = getConnection()
                     .createQueryTable(
@@ -101,32 +105,45 @@ public class DataSourceDBUnitTest extends DataSourceBasedDBTestCase {
     }
 
     @Test
-    public void givenDataSet_whenDelete_thenItemIsDeleted() throws Exception {
+    public void givenDataSet_whenDelete_thenStudentIsDeleted() throws Exception {
         try (InputStream is = DataSourceDBUnitTest.class.getClassLoader()
-                .getResourceAsStream("expected-delete.xml")) {
+                .getResourceAsStream("expected-student-delete.xml")) {
             // given
-            ITable expectedTable = (new FlatXmlDataSetBuilder().build(is)).getTable("STUDENT");
+            ITable expectedStudentTable = (new FlatXmlDataSetBuilder().build(is)).getTable("STUDENT");
             // when
-            connection.createStatement().executeUpdate("delete from STUDENT where id = 102");
+            studentDao.delete(102);
             // then
-            IDataSet databaseDataSet = getConnection().createDataSet();
-            ITable actualTable = databaseDataSet.getTable("STUDENT");
-            assertEqualsIgnoreCols(expectedTable, actualTable, new String[]{"id", "created_date", "updated_date"});
+            IDataSet databaseStudentDataSet = getConnection().createDataSet();
+            ITable actualStudentTable = databaseStudentDataSet.getTable("STUDENT");
+            assertEqualsIgnoreCols(expectedStudentTable, actualStudentTable, new String[]{"id", "created_date", "updated_date"});
+        }
+    }
+    @Test
+    public void givenDataSet_whenDeleteStudent_thenResultIsDeleted() throws Exception {
+        try (InputStream is = DataSourceDBUnitTest.class.getClassLoader()
+                .getResourceAsStream("expected-student-delete.xml")) {
+            // given
+            ITable expectedResultTable = (new FlatXmlDataSetBuilder().build(is)).getTable("EXAM_RESULT");
+            // when
+            studentDao.delete(102);
+            // then
+            IDataSet databaseResultDataSet = getConnection().createDataSet();
+            ITable actualResultTable = databaseResultDataSet.getTable("EXAM_RESULT");
+            assertEqualsIgnoreCols(expectedResultTable, actualResultTable, new String[]{"id"});
         }
     }
 
     @Test
     public void givenDataSet_whenUpdate_thenStudentHasNewName() throws Exception {
         try (InputStream is = DataSourceDBUnitTest.class.getClassLoader()
-                .getResourceAsStream("student-exp-rename.xml")) {
+                .getResourceAsStream("expected-student-rename.xml")) {
             // given
             ITable expectedTable = (new FlatXmlDataSetBuilder().build(is)).getTable("STUDENT");
             // when
-            connection.createStatement().executeUpdate("update STUDENT set first_name='New Homer' where id = 101");
+            studentDao.update(101, new Student("New Homer", "Simpson", LocalDate.parse("1956-12-12"), 123456789));
             // then
             IDataSet databaseDataSet = getConnection().createDataSet();
             ITable actualTable = databaseDataSet.getTable("STUDENT");
-
             assertEqualsIgnoreCols(expectedTable, actualTable, new String[]{"id", "created_date", "updated_date"});
         }
     }
